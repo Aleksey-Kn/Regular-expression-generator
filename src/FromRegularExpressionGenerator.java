@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,42 +15,41 @@ public class FromRegularExpressionGenerator {
 
     public List<String> generateChains(int minLength, int maxLength){
         maxSize = maxLength;
-        LinkedList<StringBuilder> results = new LinkedList<>();
-        results.add(new StringBuilder());
+        ArrayList<String> results = new ArrayList<>();
+        results.add("");
         if(regular.charAt(0) == '('
                 && regular.charAt(regular.length() - 1) == '*'
                 && indexCloseFor(regular) == regular.length() - 2)
-            results = manyStep(results, regular.substring(1, regular.length() - 2).split("\\+"));
+            results = manyStep(results, split(regular.substring(1, regular.length() - 2)));
         else {
             if(regular.charAt(0) == '(' && indexCloseFor(regular) == regular.length() - 1)
-                results = oneStep(results, regular.substring(1, regular.length() - 1).split("\\+"));
+                results = oneStep(results, split(regular.substring(1, regular.length() - 1)));
             else
-                results = oneStep(results, regular.split("\\+"));
+                results = oneStep(results, split(regular));
         }
         return results.stream()
-                .map(StringBuilder::toString)
                 .filter(s -> s.length() <= maxLength)
                 .filter(s -> s.length() >= minLength)
                 .collect(Collectors.toList());
     }
 
-    private LinkedList<StringBuilder> oneStep(LinkedList<StringBuilder> previousResult, String[] options){ // возвращает входные цепочки, на которые навешены варианты из входных options
-        LinkedList<StringBuilder> tempResult;
-        LinkedList<StringBuilder> newResult = new LinkedList<>();
+    private ArrayList<String> oneStep(ArrayList<String> previousResult, String[] options){ // возвращает входные цепочки, на которые навешены варианты из входных options
+        ArrayList<String> tempResult;
+        ArrayList<String> newResult = new ArrayList<>();
         StringBuilder state;
         int ind;
         for(String nowOptions: options){
-            tempResult = new LinkedList<>(previousResult);
+            tempResult = new ArrayList<>(previousResult);
             state = new StringBuilder(nowOptions);
             while (!state.isEmpty()){
                 if(state.charAt(0) == '('){
                     ind = indexCloseFor(state.toString()); // индекс конца обрабатываемых скобок
-                    String now = state.substring(0, ind);
-                    if(state.charAt(ind + 1) == '*') {
-                        tempResult = manyStep(tempResult, now.split("\\+"));
+                    String now = state.substring(1, ind);
+                    if(ind != state.length() - 1 && state.charAt(ind + 1) == '*') {
+                        tempResult = manyStep(tempResult, split(now));
                         state.delete(0, ind + 2);
                     } else {
-                        tempResult = oneStep(tempResult, now.split("\\+"));
+                        tempResult = oneStep(tempResult, split(now));
                         state.delete(0, ind + 1);
                     }
                 } else{ // когда нет ветвления
@@ -58,7 +58,8 @@ public class FromRegularExpressionGenerator {
                         ind = state.length();
                     String now = state.substring(0, ind);
                     state.delete(0, ind);
-                    tempResult.forEach(sb -> sb.append(now));
+                    for(int i = 0; i < tempResult.size(); i++)
+                        tempResult.set(i, tempResult.get(i) + now);
                 }
             }
             newResult.addAll(tempResult);
@@ -66,13 +67,15 @@ public class FromRegularExpressionGenerator {
         return newResult;
     }
 
-    private LinkedList<StringBuilder> manyStep(LinkedList<StringBuilder> previousResult, String[] options){
-        LinkedList<StringBuilder> newResult = new LinkedList<>(previousResult);
-        LinkedList<StringBuilder> tempResult;
+    private ArrayList<String> manyStep(ArrayList<String> previousResult, String[] options){
+        ArrayList<String> newResult = new ArrayList<>(previousResult);
+        ArrayList<String> tempResult = new ArrayList<>(previousResult);
         while (true){
-            tempResult = oneStep(newResult, options);
-            if(tempResult.stream().allMatch(e -> e.length() > maxSize))
+            tempResult = oneStep(tempResult, options);
+            tempResult.forEach(System.out::println);
+            if(tempResult.stream().allMatch(e -> e.length() > maxSize)) {
                 return newResult;
+            }
             newResult.addAll(tempResult);
         }
     }
@@ -90,5 +93,27 @@ public class FromRegularExpressionGenerator {
             }
         }
         return -1;
+    }
+
+    private String[] split(String s){
+        LinkedList<String> spliting = new LinkedList<>();
+        int count = 0;
+        int prev = 0;
+        char[] reg = s.toCharArray();
+        for(int i = 0; i < s.length(); i++){
+            if(reg[i] == '+') {
+                if (count == 0) {
+                    spliting.add(s.substring(prev, i));
+                    prev = i + 1;
+                }
+            }
+            else if(reg[i] == '(')
+                count++;
+            else if(reg[i] == ')'){
+                count--;
+            }
+        }
+        spliting.add(s.substring(prev));
+        return spliting.toArray(String[]::new);
     }
 }

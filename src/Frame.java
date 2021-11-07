@@ -3,6 +3,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.util.Arrays;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class Frame extends JFrame {
@@ -19,10 +20,14 @@ public class Frame extends JFrame {
 
         DocumentListener languageListener = new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {}
+            public void insertUpdate(DocumentEvent e) {
+                editLanguage = true;
+            }
 
             @Override
-            public void removeUpdate(DocumentEvent e) {}
+            public void removeUpdate(DocumentEvent e) {
+                editLanguage = true;
+            }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
@@ -35,14 +40,16 @@ public class Frame extends JFrame {
         add(inputPane, BorderLayout.WEST);
         JPanel chainsPane = new JPanel();
         JScrollPane centerPane = new JScrollPane(chainsPane);
+        chainsPane.setLayout(new BoxLayout(chainsPane, BoxLayout.Y_AXIS));
         add(centerPane, BorderLayout.CENTER);
         JPanel expressionPane = new JPanel();
+        expressionPane.setLayout(new BoxLayout(expressionPane, BoxLayout.Y_AXIS));
         add(expressionPane, BorderLayout.EAST);
         JPanel sizePanel = new JPanel();
         sizePanel.setLayout(new BoxLayout(sizePanel, BoxLayout.X_AXIS));
         add(sizePanel, BorderLayout.NORTH);
 
-        sizePanel.add(new JLabel("Size of chains:"));
+        sizePanel.add(new JLabel("Size of chains: "));
         sizePanel.add(new JLabel("from "));
         JTextField fromSize = new JTextField();
         sizePanel.add(fromSize);
@@ -73,10 +80,14 @@ public class Frame extends JFrame {
         expressionPane.add(new JLabel("Expression grammar:"));
         expressionGrammar.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {}
+            public void insertUpdate(DocumentEvent e) {
+                editRegular = true;
+            }
 
             @Override
-            public void removeUpdate(DocumentEvent e) {}
+            public void removeUpdate(DocumentEvent e) {
+                editRegular = true;
+            }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
@@ -100,15 +111,20 @@ public class Frame extends JFrame {
                             requiredPart.getText());
                     editLanguage = false;
                 }
-                expressionGrammar.setText(fromLanguageGenerator.createRegularExpression());
-                fromLanguageGenerator
-                        .createChains(Integer.parseInt(fromSize.toString()), Integer.parseInt(toSize.toString()))
+                StringBuilder stringBuilder = new StringBuilder(fromLanguageGenerator.createRegularExpression());
+                for(int i = 50; i < stringBuilder.length(); i += 50)
+                    stringBuilder.insert(i, '\n');
+                expressionGrammar.setText(stringBuilder.toString());
+                new TreeSet<>(fromLanguageGenerator
+                        .createChains(Integer.parseInt(fromSize.getText()), Integer.parseInt(toSize.getText())))
                         .forEach(s -> chainsPane.add(new Label(s)));
             } catch (Exception e){
                 JLabel exceptionLabel = new JLabel(e.getMessage());
                 exceptionLabel.setForeground(Color.RED);
                 chainsPane.add(exceptionLabel);
+                e.printStackTrace();
             }
+            chainsPane.updateUI();
         });
 
         fromRegularExpression.addActionListener(l -> {
@@ -119,13 +135,16 @@ public class Frame extends JFrame {
                     editRegular = false;
                 }
                 fromRegularExpressionGenerator
-                        .generateChains(Integer.parseInt(fromSize.toString()), Integer.parseInt(toSize.toString()))
+                        .generateChains(Integer.parseInt(fromSize.getText()), Integer.parseInt(toSize.getText()))
+                        .stream().sorted()
                         .forEach(s -> chainsPane.add(new Label(s)));
             } catch (Exception e){
                 JLabel exceptionLabel = new JLabel(e.getMessage());
                 exceptionLabel.setForeground(Color.RED);
                 chainsPane.add(exceptionLabel);
+                e.printStackTrace();
             }
+            chainsPane.updateUI();
         });
 
         setVisible(true);

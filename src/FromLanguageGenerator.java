@@ -32,7 +32,8 @@ public class FromLanguageGenerator {
                 allWithoutMultiplicityBuilder.append(c).append('+');
             }
         });
-        allWithoutMultiplicityBuilder.replace(allWithoutMultiplicityBuilder.length() - 1, allWithoutMultiplicityBuilder.length(), ")*");
+        allWithoutMultiplicityBuilder.replace(allWithoutMultiplicityBuilder.length() - 1,
+                allWithoutMultiplicityBuilder.length(), ")*");
         String allWithoutMultiplicity = allWithoutMultiplicityBuilder.toString();
 
         int excess = (int) (multiplicity -
@@ -48,20 +49,24 @@ public class FromLanguageGenerator {
         String repeatingMultiplicity = repeatingMultiplicityBuilder.toString();
 
         if(multiplicity != 1) {
-            result.append("(");
             for (int i = 0; i <= excess; i++){
-                result.append("(");
-                result.append(repeatingMultiplicity);
-                for(int j = 0; j < i; j++)
-                    result.append(multiplicityCharacter).append(allWithoutMultiplicity);
-                result.append(requiredSubstring);
-                result.append(repeatingMultiplicity);
-                for(int j = 0; j < excess - i; j++)
-                    result.append(multiplicityCharacter).append(allWithoutMultiplicity);
-                result.append(")+");
+                if(i % multiplicity != 0 || (excess - i) % multiplicity != 0){
+                    result.append("(");
+                    result.append(repeatingMultiplicity);
+                    for (int j = 0; j < i; j++)
+                        result.append(multiplicityCharacter).append(allWithoutMultiplicity);
+                    result.append(requiredSubstring);
+                    result.append(repeatingMultiplicity);
+                    for (int j = 0; j < excess - i; j++)
+                        result.append(multiplicityCharacter).append(allWithoutMultiplicity);
+                    result.append(")+");
+                }
             }
         }
-        result.append("(").append(repeatingMultiplicity).append(requiredSubstring).append(repeatingMultiplicity).append(")");
+        if(excess == multiplicity)
+            result.append("(").append(repeatingMultiplicity).append(requiredSubstring).append(repeatingMultiplicity).append(")");
+        else
+            result.delete(result.length() - 2, result.length());
         if(multiplicity != 1)
             result.append(")");
         return result.toString();
