@@ -1,13 +1,34 @@
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class Frame extends JFrame {
+    private boolean editLanguage = true;
+    private boolean editRegular = true;
+    private FromRegularExpressionGenerator fromRegularExpressionGenerator;
+    private FromLanguageGenerator fromLanguageGenerator;
 
     private Frame(){
         super("Regular expression generator");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setBounds(200, 100, 600, 500);
         setLayout(new BorderLayout());
+
+        DocumentListener languageListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {}
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {}
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                editLanguage = true;
+            }
+        };
 
         JPanel inputPane = new JPanel();
         inputPane.setLayout(new BoxLayout(inputPane, BoxLayout.Y_AXIS));
@@ -17,37 +38,95 @@ public class Frame extends JFrame {
         add(centerPane, BorderLayout.CENTER);
         JPanel expressionPane = new JPanel();
         add(expressionPane, BorderLayout.EAST);
-
-        inputPane.add(new JLabel("Alphabet:"));
-        JTextField language = new JTextField();
-        inputPane.add(language);
-        inputPane.add(new JLabel("Repeating character:"));
-        JTextField repeatingCharacter = new JTextField();
-        inputPane.add(repeatingCharacter);
-        inputPane.add(new JLabel("Multiplicity frequency of occurrence:"));
-        JTextField multiplicity = new JTextField();
-        inputPane.add(multiplicity);
-        inputPane.add(new JLabel("Required part of the chain"));
-        JTextField requiredPart = new JTextField();
-        inputPane.add(requiredPart);
-        inputPane.add(new JLabel("Size of chains:"));
         JPanel sizePanel = new JPanel();
         sizePanel.setLayout(new BoxLayout(sizePanel, BoxLayout.X_AXIS));
+        add(sizePanel, BorderLayout.NORTH);
+
+        sizePanel.add(new JLabel("Size of chains:"));
         sizePanel.add(new JLabel("from "));
         JTextField fromSize = new JTextField();
         sizePanel.add(fromSize);
         sizePanel.add(new JLabel(" to "));
         JTextField toSize = new JTextField();
         sizePanel.add(toSize);
-        inputPane.add(sizePanel);
+
+        inputPane.add(new JLabel("Alphabet:"));
+        JTextField language = new JTextField();
+        language.getDocument().addDocumentListener(languageListener);
+        inputPane.add(language);
+        inputPane.add(new JLabel("Repeating character:"));
+        JTextField repeatingCharacter = new JTextField();
+        repeatingCharacter.getDocument().addDocumentListener(languageListener);
+        inputPane.add(repeatingCharacter);
+        inputPane.add(new JLabel("Multiplicity frequency of occurrence:"));
+        JTextField multiplicity = new JTextField();
+        multiplicity.getDocument().addDocumentListener(languageListener);
+        inputPane.add(multiplicity);
+        inputPane.add(new JLabel("Required part of the chain"));
+        JTextField requiredPart = new JTextField();
+        requiredPart.getDocument().addDocumentListener(languageListener);
+        inputPane.add(requiredPart);
         JButton fromLanguage = new JButton("Generate grammar and chains");
         inputPane.add(fromLanguage);
 
         JTextArea expressionGrammar = new JTextArea();
         expressionPane.add(new JLabel("Expression grammar:"));
+        expressionGrammar.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {}
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {}
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                editRegular = true;
+            }
+        });
         expressionPane.add(expressionGrammar);
         JButton fromRegularExpression = new JButton("Generate chains");
         expressionPane.add(fromRegularExpression);
+
+        fromLanguage.addActionListener(l -> {
+            chainsPane.removeAll();
+            try {
+                if (editLanguage) {
+                    fromLanguageGenerator = new FromLanguageGenerator(
+                            Arrays.stream(language.getText().trim().split(" "))
+                                    .map(c -> c.charAt(0))
+                                    .collect(Collectors.toSet()),
+                            repeatingCharacter.getText().trim().charAt(0),
+                            Integer.parseInt(multiplicity.getText()),
+                            requiredPart.getText());
+                    editLanguage = false;
+                }
+                expressionGrammar.setText(fromLanguageGenerator.createRegularExpression());
+                fromLanguageGenerator
+                        .createChains(Integer.parseInt(fromSize.toString()), Integer.parseInt(toSize.toString()))
+                        .forEach(s -> chainsPane.add(new Label(s)));
+            } catch (Exception e){
+                JLabel exceptionLabel = new JLabel(e.getMessage());
+                exceptionLabel.setForeground(Color.RED);
+                chainsPane.add(exceptionLabel);
+            }
+        });
+
+        fromRegularExpression.addActionListener(l -> {
+            chainsPane.removeAll();
+            try {
+                if (editRegular) {
+                    fromRegularExpressionGenerator = new FromRegularExpressionGenerator(expressionGrammar.getText());
+                    editRegular = false;
+                }
+                fromRegularExpressionGenerator
+                        .generateChains(Integer.parseInt(fromSize.toString()), Integer.parseInt(toSize.toString()))
+                        .forEach(s -> chainsPane.add(new Label(s)));
+            } catch (Exception e){
+                JLabel exceptionLabel = new JLabel(e.getMessage());
+                exceptionLabel.setForeground(Color.RED);
+                chainsPane.add(exceptionLabel);
+            }
+        });
 
         setVisible(true);
     }
