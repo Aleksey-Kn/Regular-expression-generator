@@ -66,9 +66,7 @@ public class FromLanguageGenerator {
         if(excess == multiplicity)
             result.append("(").append(repeatingMultiplicity).append(requiredSubstring).append(repeatingMultiplicity).append(")");
         else
-            result.delete(result.length() - 2, result.length());
-        if(multiplicity != 1)
-            result.append(")");
+            result.delete(result.length() - 1, result.length());
         return result.toString();
     }
 

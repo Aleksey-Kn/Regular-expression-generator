@@ -134,9 +134,8 @@ public class Frame extends JFrame {
                     fromRegularExpressionGenerator = new FromRegularExpressionGenerator(expressionGrammar.getText());
                     editRegular = false;
                 }
-                fromRegularExpressionGenerator
-                        .generateChains(Integer.parseInt(fromSize.getText()), Integer.parseInt(toSize.getText()))
-                        .stream().sorted()
+                new TreeSet<>(fromRegularExpressionGenerator
+                        .generateChains(Integer.parseInt(fromSize.getText()), Integer.parseInt(toSize.getText())))
                         .forEach(s -> chainsPane.add(new Label(s)));
             } catch (Exception e){
                 JLabel exceptionLabel = new JLabel(e.getMessage());
