@@ -52,19 +52,28 @@ public class FromLanguageGenerator {
             for (int i = 0; i <= excess; i++){
                 if(i % multiplicity != 0 || (excess - i) % multiplicity != 0){
                     result.append("(");
+                    result.append(allWithoutMultiplicity);
                     result.append(repeatingMultiplicity);
                     for (int j = 0; j < i; j++)
                         result.append(multiplicityCharacter).append(allWithoutMultiplicity);
                     result.append(requiredSubstring);
                     result.append(repeatingMultiplicity);
-                    for (int j = 0; j < excess - i; j++)
-                        result.append(multiplicityCharacter).append(allWithoutMultiplicity);
+                    result.append(allWithoutMultiplicity);
+                    if(excess - i != 0) {
+                        for (int j = 0; j < excess - i; j++)
+                            result.append(multiplicityCharacter).append(allWithoutMultiplicity);
+                    }
                     result.append(")+");
                 }
             }
         }
         if(excess == multiplicity)
-            result.append("(").append(repeatingMultiplicity).append(requiredSubstring).append(repeatingMultiplicity).append(")");
+            result
+                    .append(allWithoutMultiplicity)
+                    .append(repeatingMultiplicity)
+                    .append(requiredSubstring)
+                    .append(repeatingMultiplicity)
+                    .append(allWithoutMultiplicity);
         else
             result.delete(result.length() - 1, result.length());
         return result.toString();

@@ -8,7 +8,7 @@ public class FromRegularExpressionGenerator {
     private int maxSize;
 
     public FromRegularExpressionGenerator(String regular){
-        this.regular = regular;
+        this.regular = regular.replace("\n", "");
         if(regular.chars().filter(c -> c == '(').count() != regular.chars().filter(c -> c == ')').count())
             throw new IllegalArgumentException("Count '(' not equal count ')'");
     }
@@ -72,9 +72,10 @@ public class FromRegularExpressionGenerator {
         ArrayList<String> tempResult = new ArrayList<>(previousResult);
         while (true){
             tempResult = oneStep(tempResult, options);
-            tempResult.forEach(System.out::println);
             if(tempResult.stream().allMatch(e -> e.length() > maxSize)) {
-                return newResult;
+                return newResult.stream()
+                        .filter(e -> e.length() <= maxSize)
+                        .collect(Collectors.toCollection(ArrayList::new));
             }
             newResult.addAll(tempResult);
         }
