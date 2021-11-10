@@ -2,7 +2,9 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.io.*;
 import java.util.Arrays;
+import java.util.Scanner;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -15,7 +17,7 @@ public class Frame extends JFrame {
     private Frame(){
         super("Regular expression generator");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setBounds(200, 100, 600, 500);
+        setBounds(200, 100, 650, 500);
         setLayout(new BorderLayout());
 
         DocumentListener languageListener = new DocumentListener() {
@@ -47,7 +49,21 @@ public class Frame extends JFrame {
         add(expressionPane, BorderLayout.EAST);
         JPanel sizePanel = new JPanel();
         sizePanel.setLayout(new BoxLayout(sizePanel, BoxLayout.X_AXIS));
-        add(sizePanel, BorderLayout.NORTH);
+        add(sizePanel, BorderLayout.SOUTH);
+        JPanel menuPanel = new JPanel();
+        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.X_AXIS));
+        add(menuPanel, BorderLayout.NORTH);
+
+        JButton about = new JButton("About author");
+        menuPanel.add(about);
+        JButton theme = new JButton("Theme");
+        menuPanel.add(theme);
+        JButton open = new JButton("Open initial data");
+        menuPanel.add(open);
+        JButton saveExpression = new JButton("Save expression to file");
+        menuPanel.add(saveExpression);
+        JButton saveChains = new JButton("Save chains to file");
+        menuPanel.add(saveChains);
 
         sizePanel.add(new JLabel("Size of chains: "));
         sizePanel.add(new JLabel("from "));
@@ -58,9 +74,9 @@ public class Frame extends JFrame {
         sizePanel.add(toSize);
 
         inputPane.add(new JLabel("Alphabet:"));
-        JTextField language = new JTextField();
-        language.getDocument().addDocumentListener(languageListener);
-        inputPane.add(language);
+        JTextField alphabet = new JTextField();
+        alphabet.getDocument().addDocumentListener(languageListener);
+        inputPane.add(alphabet);
         inputPane.add(new JLabel("Repeating character:"));
         JTextField repeatingCharacter = new JTextField();
         repeatingCharacter.getDocument().addDocumentListener(languageListener);
@@ -76,9 +92,9 @@ public class Frame extends JFrame {
         JButton fromLanguage = new JButton("Generate grammar and chains");
         inputPane.add(fromLanguage);
 
-        JTextArea expressionGrammar = new JTextArea();
-        expressionPane.add(new JLabel("Expression grammar:"));
-        expressionGrammar.getDocument().addDocumentListener(new DocumentListener() {
+        JTextArea regularExpression = new JTextArea();
+        expressionPane.add(new JLabel("Regular expression:"));
+        regularExpression.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 editRegular = true;
@@ -94,7 +110,7 @@ public class Frame extends JFrame {
                 editRegular = true;
             }
         });
-        expressionPane.add(expressionGrammar);
+        expressionPane.add(regularExpression);
         JButton fromRegularExpression = new JButton("Generate chains");
         expressionPane.add(fromRegularExpression);
 
@@ -103,7 +119,7 @@ public class Frame extends JFrame {
             try {
                 if (editLanguage) {
                     fromLanguageGenerator = new FromLanguageGenerator(
-                            Arrays.stream(language.getText().trim().split(" "))
+                            Arrays.stream(alphabet.getText().trim().split(" "))
                                     .map(c -> c.charAt(0))
                                     .collect(Collectors.toSet()),
                             repeatingCharacter.getText().trim().charAt(0),
@@ -114,7 +130,7 @@ public class Frame extends JFrame {
                 StringBuilder stringBuilder = new StringBuilder(fromLanguageGenerator.createRegularExpression());
                 for(int i = 50; i < stringBuilder.length(); i += 50)
                     stringBuilder.insert(i, '\n');
-                expressionGrammar.setText(stringBuilder.toString());
+                regularExpression.setText(stringBuilder.toString());
                 new TreeSet<>(fromLanguageGenerator
                         .createChains(Integer.parseInt(fromSize.getText()), Integer.parseInt(toSize.getText())))
                         .forEach(s -> chainsPane.add(new Label(s)));
@@ -131,7 +147,7 @@ public class Frame extends JFrame {
             chainsPane.removeAll();
             try {
                 if (editRegular) {
-                    fromRegularExpressionGenerator = new FromRegularExpressionGenerator(expressionGrammar.getText());
+                    fromRegularExpressionGenerator = new FromRegularExpressionGenerator(regularExpression.getText());
                     editRegular = false;
                 }
                 new TreeSet<>(fromRegularExpressionGenerator
@@ -144,6 +160,55 @@ public class Frame extends JFrame {
                 e.printStackTrace();
             }
             chainsPane.updateUI();
+        });
+
+        about.addActionListener(l ->
+                JOptionPane.showMessageDialog(null, "Кожемякин Алексей Андреевич, ИП-816"));
+        theme.addActionListener(l ->
+                JOptionPane.showMessageDialog(null,
+                        """
+                                Написать программу, которая по предложенному описанию языка построит регулярное выражение,
+                                задающее этот язык, и сгенерирует с его помощью все цепочки языка в заданном диапазоне длин.
+                                Предусмотреть также возможность генерации цепочек по введённому пользователем РВ. Вариант задания языка:
+                                Алфавит, кратность вхождения некоторого символа алфавита во все цепочки языка и заданная подцепочка всех цепочек языка.
+                                """));
+        saveExpression.addActionListener(l -> {
+            String name = JOptionPane.showInputDialog(null, "Ввидете имя файла для сохранения");
+            try {
+                FileWriter writer = new FileWriter(name + ".txt");
+                writer.write(regularExpression.getText());
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        saveChains.addActionListener(l -> {
+            String name = JOptionPane.showInputDialog(null, "Ввидете имя файла для сохранения");
+            if(name != null) {
+                try {
+                    PrintWriter writer = new PrintWriter(new FileWriter(name + ".txt"));
+                    for (Component component : chainsPane.getComponents()) {
+                        writer.println(((Label) component).getText());
+                    }
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        open.addActionListener(l -> {
+            String name = JOptionPane.showInputDialog(null, "Ввидете имя файла");
+            if(name != null) {
+                try {
+                    Scanner scanner = new Scanner(new File(name + ".txt"));
+                    alphabet.setText(scanner.nextLine());
+                    repeatingCharacter.setText(scanner.nextLine());
+                    multiplicity.setText(scanner.nextLine());
+                    requiredPart.setText(scanner.nextLine());
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
         });
 
         setVisible(true);
