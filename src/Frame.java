@@ -173,7 +173,9 @@ public class Frame extends JFrame {
                                 Алфавит, кратность вхождения некоторого символа алфавита во все цепочки языка и заданная подцепочка всех цепочек языка.
                                 """));
         saveExpression.addActionListener(l -> {
-            String name = JOptionPane.showInputDialog(null, "Ввидете имя файла для сохранения");
+            String name = JOptionPane.showInputDialog(null,
+                    "Ввидете имя файла для сохранения",
+                    "Сохранение регулярного выражения", JOptionPane.QUESTION_MESSAGE);
             try {
                 FileWriter writer = new FileWriter(name + ".txt");
                 writer.write(regularExpression.getText());
@@ -183,7 +185,9 @@ public class Frame extends JFrame {
             }
         });
         saveChains.addActionListener(l -> {
-            String name = JOptionPane.showInputDialog(null, "Ввидете имя файла для сохранения");
+            String name = JOptionPane.showInputDialog(null,
+                    "Ввидете имя файла для сохранения",
+                    "Сохранение цепочек", JOptionPane.QUESTION_MESSAGE);
             if(name != null) {
                 try {
                     PrintWriter writer = new PrintWriter(new FileWriter(name + ".txt"));
@@ -197,7 +201,9 @@ public class Frame extends JFrame {
             }
         });
         open.addActionListener(l -> {
-            String name = JOptionPane.showInputDialog(null, "Ввидете имя файла");
+            String name = JOptionPane.showInputDialog(null,
+                    "Ввидете имя файла",
+                    "Чтение параметров языка из файла", JOptionPane.QUESTION_MESSAGE);
             if(name != null) {
                 try {
                     Scanner scanner = new Scanner(new File(name + ".txt"));
