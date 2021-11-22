@@ -85,10 +85,14 @@ public class Frame extends JFrame {
         JTextField multiplicity = new JTextField();
         multiplicity.getDocument().addDocumentListener(languageListener);
         inputPane.add(multiplicity);
-        inputPane.add(new JLabel("Required part of the chain"));
-        JTextField requiredPart = new JTextField();
-        requiredPart.getDocument().addDocumentListener(languageListener);
-        inputPane.add(requiredPart);
+        inputPane.add(new JLabel("Start part of the chain"));
+        JTextField startPart = new JTextField();
+        startPart.getDocument().addDocumentListener(languageListener);
+        inputPane.add(startPart);
+        inputPane.add(new JLabel("End part of the chain"));
+        JTextField endPart = new JTextField();
+        endPart.getDocument().addDocumentListener(languageListener);
+        inputPane.add(endPart);
         JButton fromLanguage = new JButton("Generate grammar and chains");
         inputPane.add(fromLanguage);
 
@@ -124,7 +128,7 @@ public class Frame extends JFrame {
                                     .collect(Collectors.toSet()),
                             repeatingCharacter.getText().trim().charAt(0),
                             Integer.parseInt(multiplicity.getText()),
-                            requiredPart.getText());
+                            startPart.getText(), endPart.getText());
                     editLanguage = false;
                 }
                 StringBuilder stringBuilder = new StringBuilder(fromLanguageGenerator.createRegularExpression());
@@ -174,7 +178,7 @@ public class Frame extends JFrame {
                                 """));
         saveExpression.addActionListener(l -> {
             String name = JOptionPane.showInputDialog(null,
-                    "Ввидете имя файла для сохранения",
+                    "Введите имя файла для сохранения",
                     "Сохранение регулярного выражения", JOptionPane.QUESTION_MESSAGE);
             try {
                 FileWriter writer = new FileWriter(name + ".txt");
@@ -186,7 +190,7 @@ public class Frame extends JFrame {
         });
         saveChains.addActionListener(l -> {
             String name = JOptionPane.showInputDialog(null,
-                    "Ввидете имя файла для сохранения",
+                    "Введите имя файла для сохранения",
                     "Сохранение цепочек", JOptionPane.QUESTION_MESSAGE);
             if(name != null) {
                 try {
@@ -202,7 +206,7 @@ public class Frame extends JFrame {
         });
         open.addActionListener(l -> {
             String name = JOptionPane.showInputDialog(null,
-                    "Ввидете имя файла",
+                    "Введите имя файла",
                     "Чтение параметров языка из файла", JOptionPane.QUESTION_MESSAGE);
             if(name != null) {
                 try {
@@ -210,7 +214,7 @@ public class Frame extends JFrame {
                     alphabet.setText(scanner.nextLine());
                     repeatingCharacter.setText(scanner.nextLine());
                     multiplicity.setText(scanner.nextLine());
-                    requiredPart.setText(scanner.nextLine());
+                    startPart.setText(scanner.nextLine());
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
