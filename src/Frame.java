@@ -215,6 +215,7 @@ public class Frame extends JFrame {
                     repeatingCharacter.setText(scanner.nextLine());
                     multiplicity.setText(scanner.nextLine());
                     startPart.setText(scanner.nextLine());
+                    endPart.setText(scanner.nextLine());
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
